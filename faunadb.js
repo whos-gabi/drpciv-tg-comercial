@@ -4,19 +4,17 @@ export class SubscriptionLayer {
 
   constructor() {
     this.client = new faunadb.Client({ secret: process.env.FAUNA_KEY });
-    // this.collection = "users-kym";
-    this.collection = "users";
-    //TODO: change this collection in test mode
-    // this.collection = "users_test";
+    this.collection = "subscribers";
     this.q = faunadb.query;
   }
 
-  // Function to get all users from 'users' Collection
   async getAllUsers() {
     try {
       const result = await this.client.query(
         faunadb.query.Map(
-          faunadb.query.Paginate(faunadb.query.Documents(faunadb.query.Collection(this.collection))),
+          faunadb.query.Paginate(
+            faunadb.query.Documents(faunadb.query.Collection(this.collection))
+          ),
           faunadb.query.Lambda((x) => faunadb.query.Get(x))
         )
       );
@@ -26,8 +24,18 @@ export class SubscriptionLayer {
     }
   }
 
-  async addUser(user) {
+  async addUser(chat, lastDate, judetId) {
     try {
+      const user = {
+        chat: chat,
+        lastDate: lastDate,
+        judetId: judetId,
+        subscribed: true,
+        freetrial: {
+          status: false,
+          endtime: "12.12.1999",
+        },
+      };
       const result = await this.client.query(
         faunadb.query.Create(faunadb.query.Collection(this.collection), {
           data: user,
@@ -96,15 +104,17 @@ export class SubscriptionLayer {
 
   async deleteAllUsers() {
     try {
-        const result = await this.client.query(
-          faunadb.query.Map(
-            faunadb.query.Paginate(faunadb.query.Documents(faunadb.query.Collection(this.collection))),
-            faunadb.query.Lambda((x) => faunadb.query.Delete(x))
-          )
-        );
-        return result.data;
-      } catch (error) {
-        console.log("Error deleting users: " + error);
-      }
+      const result = await this.client.query(
+        faunadb.query.Map(
+          faunadb.query.Paginate(
+            faunadb.query.Documents(faunadb.query.Collection(this.collection))
+          ),
+          faunadb.query.Lambda((x) => faunadb.query.Delete(x))
+        )
+      );
+      return result.data;
+    } catch (error) {
+      console.log("Error deleting users: " + error);
+    }
   }
 }

@@ -78,9 +78,9 @@ const judete = [
   { id: 46, nume: "Bucuresti S.6" },
 ];
 
-let judet_id = 0;
-let timer = null;
-let current_date = "";
+// let judet_id = 0;
+// let timer = null;
+// let current_date = "";
 
 bot.setMyCommands([
   { command: "/start", description: "Start 🚀" },
@@ -88,10 +88,6 @@ bot.setMyCommands([
   { command: "/help", description: "Ajutor ⁉" },
   { command: "/date", description: "Urmatoarea data disponibila 📆⏳" },
 ]);
-
-//loop all users and ebash message to all of them
-appointmentChecker();
-
 
 
 //------------------BOT COMMANDS------------------
@@ -110,53 +106,21 @@ bot.on("message", async (msg) => {
 
   if (message === "/start") {
     //---------------------------------------- Start
-    clearInterval(timer);
-    timer = null;
-    current_date = "";
-    //check is user exists in db
-    await subsLayer.getAllUsers(msg).then((users) => {
-      //loop users
-      console.log(users);
-      if (users.length > 0) {
-        users.forEach((user) => {
-          //check if user exists in db
-          if (user.data.chat?.id == msg.chat.id) {
-            console.log(`User ${msg.chat.id} already exists in db`);
-            // loop already started for this user MSG
-          } else {
-            bot.sendMessage(chatId, "Salut! 👋");
-            bot.sendMessage(chatId, "Alege judetul 🇷🇴", options1);
-          }
-        });
+
+    await subsLayer.getUser(msg.chat.id).then(async (user) => {
+      if (user) {
+        console.log(`User ${msg.chat.id} already exists in db`);
+        current_date = await getDateDRPCIV(user.judetId);
+        bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
+        bot.sendMessage(
+          chatId,
+          "Botul deja ruleaza! (" + judete[user.judetId - 1].nume + ")"
+        );
       } else {
         bot.sendMessage(chatId, "Salut! 👋");
         bot.sendMessage(chatId, "Alege judetul 🇷🇴", options1);
       }
     });
-
-    // //sterge nahui toti userii
-    // await subsLayer.getAllUsers().then((users) => {
-    //   if (users.length > 0) {
-    //     subsLayer
-    //       .deleteAllUsers()
-    //       .then((resp) => {
-    //         console.log(`Deleted ${resp.length} users.`)
-    //         subsLayer.addUser(msg).then(() => console.log("newUser"));
-    //       });
-    //   } else {
-    //     subsLayer.addUser(msg).then(() => console.log("newUser"));
-    //   }
-    // });
-
-    console.log(msg.text); //test
-    // bot.sendMessage(
-    //   chatId,
-    //   "Hey, o sa va anuntam despre programarile disponibile la DRPCIV"
-    // );
-    // current_date = await getDateDRPCIV(msg);
-    // bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
-    // appointmentChecker(msg);
-    // console.log(`Data curenta este: ${current_date}`);
   } else if (message === "/help") {
     //---------------------------------------- Help ⁉
     bot.sendMessage(
@@ -165,23 +129,18 @@ bot.on("message", async (msg) => {
     );
   } else if (message === "/date") {
     //---------------------------------------- Date 📆⏳
-    let data = await getDateDRPCIV();
-    bot.sendMessage(chatId, "*" + data + "*", {
-      parse_mode: "Markdown",
+    await subsLayer.getUser(chatId).then(async (user) => {
+      judet_id = user.judetId;
+      let data = await getDateDRPCIV(user.judetId);
+      bot.sendMessage(chatId, "*" + data + "*", {
+        parse_mode: "Markdown",
+      });
     });
-    console.log("/date: " + data);
   } else if (message === "/stop") {
     //---------------------------------------- Stop ⛔️
-    clearInterval(timer);
-    timer = null;
-    current_date = "";
-    //sterge nahui toti userii
-    subsLayer
-      .deleteAllUsers()
-      .then((deletedUsers) =>
-        console.log(`Deleted ${deletedUsers.length} users.`)
-      );
-    bot.sendMessage(chatId, "Botul a fost oprit");
+    await subsLayer.deleteUser(msg.chat.id).then(() => {
+      bot.sendMessage(chatId, "Botul a fost oprit");
+    });
   } else {
     //---------------------------------------- Invalid command ♿️🚫
     bot.sendMessage(
@@ -211,13 +170,14 @@ bot.on("callback_query", async (callbackQuery) => {
     current_date = await getDateDRPCIV(judet_id);
     bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
     //-----
-
-    // appointmentChecker(chatId, judet_id);
     bot.deleteMessage(chatId, messageId);
-
     subsLayer
       .addUser(callbackQuery.message.chat, current_date, judet_id)
       .then(() => console.log("newUser"));
+    bot.sendMessage(
+      chatId,
+      "Hey, o sa va anuntam despre programarile disponibile la DRPCIV"
+    );
   } catch (err) {
     console.log(err);
     bot.sendMessage(chatId, `Eroare: ${err}`);
@@ -226,24 +186,6 @@ bot.on("callback_query", async (callbackQuery) => {
 
 //--------------------FUNCTIONS----------------------
 
-function appointmentChecker() {
-  console.log("✅ checking for appointments...");
-  timer = setInterval(async () => {
-    await getAllUsers().then((users) => {
-      users.forEach(async (user) => {
-        let date = await getDateDRPCIV(user.data.judetId);
-        if (date !== user.data.lastdate) {
-          console.log("new date found: " + date);
-          subsLayer.updateUser(user.data.chat.id, date);
-          bot.sendMessage(
-            user.data.chat.id,
-            `${date} este noua data disponibila la DRPCIV `
-          );
-        } 
-      });
-    });
-  }, 60 * 1000 * 1); // 1 min
-}
 
 async function getDateDRPCIV(judetId) {
   let first_date = "";

@@ -78,6 +78,7 @@ const judete = [
   { id: 46, nume: "Bucuresti S.6" },
 ];
 
+let judet_id = 0;
 let timer = null;
 let current_date = "";
 

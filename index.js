@@ -29,6 +29,59 @@ const months = [
   "Decembrie",
 ];
 
+<<<<<<< Updated upstream
+=======
+const judete = [
+  { id: 1, nume: "Alba" },
+  { id: 2, nume: "Arad" },
+  { id: 3, nume: "Arges" },
+  { id: 4, nume: "Bacau" },
+  { id: 5, nume: "Bihor" },
+  { id: 6, nume: "Bistrita-Nasaud" },
+  { id: 7, nume: "Botosani" },
+  { id: 8, nume: "Brasov" },
+  { id: 9, nume: "Braila" },
+  { id: 10, nume: "Buzau" },
+  { id: 11, nume: "Caras-Severin" },
+  { id: 12, nume: "Cluj" },
+  { id: 13, nume: "Constanta" },
+  { id: 14, nume: "Covasna" },
+  { id: 15, nume: "Dambovita" },
+  { id: 16, nume: "Dolj" },
+  { id: 17, nume: "Galati" },
+  { id: 18, nume: "Gorj" },
+  { id: 19, nume: "Harghita" },
+  { id: 20, nume: "Hunedoara" },
+  { id: 21, nume: "Ialomita" },
+  { id: 22, nume: "Iasi" },
+  { id: 23, nume: "Ilfov" },
+  { id: 24, nume: "Maramures" },
+  { id: 25, nume: "Mehedinti" },
+  { id: 26, nume: "Mures" },
+  { id: 27, nume: "Neamt" },
+  { id: 28, nume: "Olt" },
+  { id: 29, nume: "Prahova" },
+  { id: 30, nume: "Satu Mare" },
+  { id: 31, nume: "Salaj" },
+  { id: 32, nume: "Sibiu" },
+  { id: 33, nume: "Suceava" },
+  { id: 34, nume: "Teleorman" },
+  { id: 35, nume: "Timis" },
+  { id: 36, nume: "Tulcea" },
+  { id: 37, nume: "Vaslui" },
+  { id: 38, nume: "Valcea" },
+  { id: 39, nume: "Vrancea" },
+  { id: 40, nume: "Bucuresti" },
+  { id: 41, nume: "Bucuresti S.1" },
+  { id: 42, nume: "Bucuresti S.2" },
+  { id: 43, nume: "Bucuresti S.3" },
+  { id: 44, nume: "Bucuresti S.4" },
+  { id: 45, nume: "Bucuresti S.5" },
+  { id: 46, nume: "Bucuresti S.6" },
+];
+
+// let judet_id = 0;
+>>>>>>> Stashed changes
 let timer = null;
 let current_date = "";
 
@@ -50,12 +103,27 @@ subsLayer.getAllUsers().then((users) => {
   }
 });
 
+
+
+appointmentChecker();
 //------------------BOT COMMANDS------------------
 
 bot.on("message", async (msg) => {
   console.log(msg);
   const message = msg.text;
   const chatId = msg.chat.id;
+<<<<<<< Updated upstream
+=======
+  const options1 = {
+    reply_markup: JSON.stringify({
+      inline_keyboard: judete.map((judet) => {
+        return [{ text: judet.nume, callback_data: judet.id }];
+      }),
+    }),
+  };
+
+
+>>>>>>> Stashed changes
   if (message === "/start") {
     //---------------------------------------- Start
     clearInterval(timer);
@@ -127,6 +195,7 @@ bot.on("message", async (msg) => {
 
 //--------------------FUNCTIONS----------------------
 
+<<<<<<< Updated upstream
 function appointmentChecker(message) {
   console.log("✅ checking for appointments...");
   timer = setInterval(async () => {
@@ -139,6 +208,38 @@ function appointmentChecker(message) {
         `${date} este noua data disponibila la DRPCIV `
       );
     }
+=======
+function appointmentChecker() {
+  console.log("✅ checking for appointments...");
+  timer = setInterval(async () => {
+    await subsLayer.getAllUsers().then((users) => {
+      users.forEach(async (user) => {
+        console.log(
+          "loop over user: ",
+          user.data.chat.id,
+          "Judet: ",
+          judete[user.data.judetId - 1].nume
+        );
+        //TODO: validate user free trial
+        await getDateDRPCIV(user.data.judetId).then(async (date) => {
+          // console.log(
+          //   "fetched date: " + date + " last date: " + user.data.lastDate
+          // );
+          if (date !== user.data.lastDate) {
+            console.log("new date found: " + date);
+            await subsLayer
+              .updateUserLastDate(user.data.chat.id, date)
+              .then(() => {
+                bot.sendMessage(
+                  user.data.chat.id,
+                  `${date} este noua data disponibila la DRPCIV `
+                );
+              });
+          }
+        });
+      });
+    });
+>>>>>>> Stashed changes
   }, 60 * 1000 * 1); // 1 min
 }
 

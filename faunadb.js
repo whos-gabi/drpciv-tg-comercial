@@ -38,11 +38,78 @@ export class SubscriptionLayer {
       console.log("Error: ", error);
     }
   }
+<<<<<<< Updated upstream
+=======
+  async updateUserLastDate(chatId, lastDate) {
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index('chatId'), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { lastDate: lastDate } })
+        );
+        console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  };
+>>>>>>> Stashed changes
 
   async deleteUser(userRef) {
     try {
+<<<<<<< Updated upstream
       const result = await this.client.query(faunadb.query.Delete(userRef));
       return result.ref.data;
+=======
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index('chatId'), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { judetId: judetId } })
+        );
+        console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  };
+
+async deleteUser(chatId) {
+  try {
+    const { ref } = await this.client.query(
+      this.q.Let(
+        { userRef: this.q.Match(this.q.Index("chatId"), chatId) },
+        this.q.Delete(this.q.Select("ref", this.q.Get(this.q.Var("userRef"))))
+      )
+    );
+    console.log(`User with chat ID ${chatId} deleted successfully`);
+  } catch (error) {
+    console.log(`Error deleting user with chat ID ${chatId}: `, error);
+  }
+}
+
+
+  async getUser(chatId) {
+    try {
+      let resp;
+      await this.getAllUsers().then((users) => {
+        if (users.length > 0) {
+          users.forEach((user) => {
+            if (user.data.chat?.id == chatId) {
+              resp = user.data;
+            }
+          });
+        }
+      });
+      return resp;
+>>>>>>> Stashed changes
     } catch (error) {
       console.log("Error: ", error);
     }

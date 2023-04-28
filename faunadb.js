@@ -4,19 +4,17 @@ export class SubscriptionLayer {
 
   constructor() {
     this.client = new faunadb.Client({ secret: process.env.FAUNA_KEY });
-    // this.collection = "users-kym";
-    this.collection = "users";
-    //TODO: change this collection in test mode
-    // this.collection = "users_test";
+    this.collection = "subscribers";
     this.q = faunadb.query;
   }
 
-  // Function to get all users from 'users' Collection
   async getAllUsers() {
     try {
       const result = await this.client.query(
         faunadb.query.Map(
-          faunadb.query.Paginate(faunadb.query.Documents(faunadb.query.Collection(this.collection))),
+          faunadb.query.Paginate(
+            faunadb.query.Documents(faunadb.query.Collection(this.collection))
+          ),
           faunadb.query.Lambda((x) => faunadb.query.Get(x))
         )
       );
@@ -26,8 +24,18 @@ export class SubscriptionLayer {
     }
   }
 
-  async addUser(user) {
+  async addUser(chat, lastDate, judetId) {
     try {
+      const user = {
+        chat: chat,
+        lastDate: lastDate,
+        judetId: judetId,
+        subscribed: true,
+        freetrial: {
+          status: false,
+          endtime: "12.12.1999",
+        },
+      };
       const result = await this.client.query(
         faunadb.query.Create(faunadb.query.Collection(this.collection), {
           data: user,
@@ -38,73 +46,89 @@ export class SubscriptionLayer {
       console.log("Error: ", error);
     }
   }
-
-  async deleteUser(userRef) {
+  async updateUserLastDate(chatId, lastDate) {
     try {
-      const result = await this.client.query(faunadb.query.Delete(userRef));
-      return result.ref.data;
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { lastDate: lastDate } })
+        );
+        console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+
+  async updateUserJudetId(chatId, judetId) {
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { judetId: judetId } })
+        );
+        console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+
+  async deleteUser(chatId) {
+    try {
+      const { ref } = await this.client.query(
+        this.q.Let(
+          { userRef: this.q.Match(this.q.Index("chatId"), chatId) },
+          this.q.Delete(this.q.Select("ref", this.q.Get(this.q.Var("userRef"))))
+        )
+      );
+      console.log(`User with chat ID ${chatId} deleted successfully`);
+    } catch (error) {
+      console.log(`Error deleting user with chat ID ${chatId}: `, error);
+    }
+  }
+
+  async getUser(chatId) {
+    try {
+      let resp;
+      await this.getAllUsers().then((users) => {
+        if (users.length > 0) {
+          users.forEach((user) => {
+            if (user.data.chat?.id == chatId) {
+              resp = user.data;
+            }
+          });
+        }
+      });
+      return resp;
     } catch (error) {
       console.log("Error: ", error);
     }
   }
 
-  async deleteUser(user) {
-    try {
-      const userRef = this.client.query(
-        faunadb.query.Map(
-          faunadb.Paginate(
-            faunadb.Match(faunadb.Index("chat_id"), user.chat.id)
-          ),
-          faunadb.query.Lambda(
-            this.collection,
-            faunadb.Get(faunadb.Var(this.collection))
-          )
-        )
-      );
-      console.log("User ref: " + userRef);
-      const userExists = await this.client.query(faunadb.query.Exists(userRef));
-
-      if (!userExists) {
-        console.log(
-          `User ${user.chat.first_name} with chat id ${user.chat.id} does not exist in the database.`
-        );
-        return;
-      }
-
-      const response = await this.client.query(faunadb.query.Delete(userRef));
-      console.log(
-        `User ${user.chat.first_name} with chat id ${user.chat.id} has been deleted from the database.`
-      );
-      return response;
-    } catch (error) {
-      console.log("Error deleting user: ", error);
-    }
-  }
-
-  async deleteUserByIndex(indexName, indexValue) {
-    try {
-      const result = await client.query(
-        faunadb.query.Delete(
-          faunadb.query.Match(faunadb.query.Index(indexName), indexValue)
-        )
-      );
-      console.log("User deleted: " + result?.ref?.id);
-    } catch (error) {
-      console.log("Error deleting user: " + error);
-    }
-  }
-
+  /*
   async deleteAllUsers() {
     try {
-        const result = await this.client.query(
-          faunadb.query.Map(
-            faunadb.query.Paginate(faunadb.query.Documents(faunadb.query.Collection(this.collection))),
-            faunadb.query.Lambda((x) => faunadb.query.Delete(x))
-          )
-        );
-        return result.data;
-      } catch (error) {
-        console.log("Error deleting users: " + error);
-      }
+      const result = await this.client.query(
+        faunadb.query.Map(
+          faunadb.query.Paginate(
+            faunadb.query.Documents(faunadb.query.Collection(this.collection))
+          ),
+          faunadb.query.Lambda((x) => faunadb.query.Delete(x))
+        )
+      );
+      return result.data;
+    } catch (error) {
+      console.log("Error deleting users: " + error);
+    }
   }
+  */
 }

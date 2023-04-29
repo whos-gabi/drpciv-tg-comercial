@@ -89,8 +89,13 @@ bot.setMyCommands([
   { command: "/date", description: "Urmatoarea data disponibila 📆⏳" },
 ]);
 
-
-
+const options1 = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: judete.map((judet) => {
+      return [{ text: judet.nume, callback_data: judet.id }];
+    }),
+  }),
+};
 
 appointmentChecker();
 //------------------BOT COMMANDS------------------
@@ -125,11 +130,14 @@ bot.on("message", async (msg) => {
   } else if (message === "/date") {
     //---------------------------------------- Date 📆⏳
     await subsLayer.getUser(chatId).then(async (user) => {
-      judet_id = user.judetId;
-      let data = await getDateDRPCIV(user.judetId);
-      bot.sendMessage(chatId, "*" + data + "*", {
-        parse_mode: "Markdown",
-      });
+      if (user) {
+        let data = await getDateDRPCIV(user.judetId);
+        bot.sendMessage(chatId, "*" + data + "*", {
+          parse_mode: "Markdown",
+        });
+      } else {
+        bot.sendMessage(chatId, "Nu sunteți abonat la notificări! \nFolosiți /start pentru a vă abona.");
+      }
     });
   } else if (message === "/stop") {
     //---------------------------------------- Stop ⛔️
@@ -144,7 +152,7 @@ bot.on("message", async (msg) => {
     );
   }
 
-  //dupa toate huinelele...
+
 
   if (current_date != "") {
     // appointmentChecker(msg);
@@ -181,18 +189,36 @@ bot.on("callback_query", async (callbackQuery) => {
 
 //--------------------FUNCTIONS----------------------
 
-function appointmentChecker(message) {
+function appointmentChecker() {
   console.log("✅ checking for appointments...");
   timer = setInterval(async () => {
-    let date = await getDateDRPCIV(message);
-    if (date !== current_date) {
-      console.log("new date found: " + date);
-      current_date = date;
-      bot.sendMessage(
-        message.chat.id,
-        `${date} este noua data disponibila la DRPCIV `
-      );
-    }
+    await subsLayer.getAllUsers().then((users) => {
+      users.forEach(async (user) => {
+        console.log(
+          "loop over user: ",
+          user.data.chat.id,
+          "Judet: ",
+          judete[user.data.judetId - 1].nume
+        );
+        //TODO: validate user free trial
+        await getDateDRPCIV(user.data.judetId).then(async (date) => {
+          // console.log(
+          //   "fetched date: " + date + " last date: " + user.data.lastDate
+          // );
+          if (date !== user.data.lastDate) {
+            console.log("new date found: " + date);
+            await subsLayer
+              .updateUserLastDate(user.data.chat.id, date)
+              .then(() => {
+                bot.sendMessage(
+                  user.data.chat.id,
+                  `${date} este noua data disponibila la DRPCIV `
+                );
+              });
+          }
+        });
+      });
+    });
   }, 60 * 1000 * 1); // 1 min
 }
 

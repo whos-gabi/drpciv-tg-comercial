@@ -1,2 +1,2 @@
-worker_bot: node index.js
-worker_checker: node appointmentChecker.js
+worker1: node index.js
+worker2: node appointmentChecker.js

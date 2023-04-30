@@ -39,11 +39,5 @@
         { "id": 37, "nume": "Vaslui" },
         { "id": 38, "nume": "Valcea" },
         { "id": 39, "nume": "Vrancea" },
-        { "id": 40, "nume": "Bucuresti" },
-        { "id": 41, "nume": "Bucuresti S.1" },
-        { "id": 42, "nume": "Bucuresti S.2" },
-        { "id": 43, "nume": "Bucuresti S.3" },
-        { "id": 44, "nume": "Bucuresti S.4" },
-        { "id": 45, "nume": "Bucuresti S.5" },
-        { "id": 46, "nume": "Bucuresti S.6" }
+        { "id": 40, "nume": "Bucuresti" }
       ]

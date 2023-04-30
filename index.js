@@ -56,7 +56,7 @@ bot.on("message", async (msg) => {
     //---------------------------------------- Help ⁉
     bot.sendMessage(
       chatId,
-      "Comenzile disponibile sunt: /start, /stop, /help, /date"
+      "Comenzile disponibile sunt: /start, /stop, /help, /date\n Pentru mai multe întrebări, contactați @whos_gabi"
     );
   } else if (message === "/date") {
     //---------------------------------------- Date 📆⏳
@@ -67,13 +67,20 @@ bot.on("message", async (msg) => {
           parse_mode: "Markdown",
         });
       } else {
-        bot.sendMessage(chatId, "Nu sunteți abonat la notificări! \nFolosiți /start pentru a vă abona.");
+        bot.sendMessage(
+          chatId,
+          "Nu sunteți abonat la notificări! \nFolosiți /start pentru a vă abona."
+        );
       }
     });
   } else if (message === "/stop") {
     //---------------------------------------- Stop ⛔️
-    await subsLayer.deleteUser(msg.chat.id).then(() => {
+    await subsLayer.deleteUser(msg.chat.id).then(async () => {
       bot.sendMessage(chatId, "Botul a fost oprit");
+      await subsLayer.sendMessage(
+        process.env.ADMIN_CHAT_ID,
+        `User deleted:\n\n${JSON.stringify(msg, null, 2)}`
+      );
     });
   } else {
     //---------------------------------------- Invalid command ♿️🚫
@@ -82,8 +89,6 @@ bot.on("message", async (msg) => {
       "Se pare ca acest mesaj nu este o comanda valida. Incearca /help."
     );
   }
-
-
 
   if (current_date != "") {
     // appointmentChecker(msg);
@@ -107,11 +112,18 @@ bot.on("callback_query", async (callbackQuery) => {
     bot.deleteMessage(chatId, messageId);
     subsLayer
       .addUser(callbackQuery.message.chat, current_date, judet_id)
-      .then(() => console.log("newUser"));
-    bot.sendMessage(
-      chatId,
-      "Hey, o sa va anuntam despre programarile disponibile la DRPCIV"
-    );
+      .then(async (user) => {
+        bot.sendMessage(
+          chatId,
+          "Hey, o sa va anuntam despre programarile disponibile la DRPCIV"
+        );
+        await subsLayer.sendMessage(
+          process.env.ADMIN_CHAT_ID,
+          `New user subscribed: ${chatId} Judet: ${
+            judete[judet_id - 1].nume
+          }\n\n${JSON.stringify(user, null, 2)}`
+        );
+      });
   } catch (err) {
     console.log(err);
     bot.sendMessage(chatId, `Eroare: ${err}`);
@@ -119,6 +131,3 @@ bot.on("callback_query", async (callbackQuery) => {
 });
 
 //--------------------FUNCTIONS----------------------
-
-
-

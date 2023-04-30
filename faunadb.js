@@ -47,14 +47,20 @@ export class SubscriptionLayer {
 
   async addUser(chat, lastDate, judetId) {
     try {
+      //create a date instance 2 days from now
+      let date = new Date();
+      date.setDate(date.getDate() + 2);
+      //strinfify date
+      date = date.toISOString();
+
       const user = {
         chat: chat,
         lastDate: lastDate,
         judetId: judetId,
-        subscribed: true,
+        subscribed: false,
         freetrial: {
-          status: false,
-          endtime: "12.12.1999",
+          status: true,
+          endtime: date,
         },
       };
       const result = await this.client.query(
@@ -62,7 +68,7 @@ export class SubscriptionLayer {
           data: user,
         })
       );
-      return result?.ref?.data;
+      return user;
     } catch (error) {
       console.log("Error: ", error);
     }
@@ -150,4 +156,16 @@ export class SubscriptionLayer {
         });
     });
   }
+  
+  async sendMessage(chatId, msg) {
+    msg = encodeURI(msg);
+    const url = `https://api.telegram.org/bot${process.env.TOKEN}/sendMessage?chat_id=${chatId}&text=${msg}`;
+    try {
+      const { data } = await axios.post(url);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  //end class
 }

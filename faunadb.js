@@ -1,4 +1,6 @@
 import { default as faunadb } from "faunadb";
+import axios from "axios";
+
 export class SubscriptionLayer {
   client;
 
@@ -6,6 +8,25 @@ export class SubscriptionLayer {
     this.client = new faunadb.Client({ secret: process.env.FAUNA_KEY });
     this.collection = "subscribers";
     this.q = faunadb.query;
+    this.months = [
+      "",
+      "Ianuarie",
+      "Februarie",
+      "Martie",
+      "Aprilie",
+      "Mai",
+      "Iunie",
+      "Iulie",
+      "August",
+      "Septembrie",
+      "Octombrie",
+      "Noiembrie",
+      "Decembrie",
+    ];
+    // this.BASE_URL =
+    //   "https://4b68f4d8-0a7c-4ae0-a2f9-fb6ab154dbfa.mock.pstmn.io/mock/";
+    this.BASE_URL =
+      "https://www.drpciv.ro/drpciv-booking-api/getAvailableDaysForSpecificService/1/";
   }
 
   async getAllUsers() {
@@ -56,14 +77,14 @@ export class SubscriptionLayer {
     }
   }
 
-  async updateUserJudetId(chatId, judetId) {
+  async updateUserLastDate(chatId, lastDate) {
     try {
       const user = await this.client.query(
         this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
       );
       if (user) {
         await this.client.query(
-          this.q.Update(user.ref, { data: { judetId: judetId } })
+          this.q.Update(user.ref, { data: { lastDate: lastDate } })
         );
         console.log(`User with chatId ${chatId} updated successfully`);
       } else {
@@ -106,21 +127,27 @@ export class SubscriptionLayer {
     }
   }
 
-  /*
-  async deleteAllUsers() {
-    try {
-      const result = await this.client.query(
-        faunadb.query.Map(
-          faunadb.query.Paginate(
-            faunadb.query.Documents(faunadb.query.Collection(this.collection))
-          ),
-          faunadb.query.Lambda((x) => faunadb.query.Delete(x))
-        )
-      );
-      return result.data;
-    } catch (error) {
-      console.log("Error deleting users: " + error);
-    }
+  async getDateDRPCIV(judetId) {
+    let first_date = "";
+    return new Promise((resolve) => {
+      axios
+        .get(this.BASE_URL + judetId)
+        .then((data) => {
+          first_date = data.data[0].split(" ")[0];
+          first_date = first_date.split("-");
+          first_date =
+            first_date[2] +
+            " " +
+            this.months[parseInt(first_date[1])] +
+            " " +
+            first_date[0];
+          setTimeout(() => {
+            resolve(String(first_date));
+          }, 500);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
   }
-  */
 }

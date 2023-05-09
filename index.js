@@ -141,9 +141,6 @@ bot.on("message", async (msg) => {
     );
   }
 
-  if (current_date != "") {
-    // appointmentChecker(msg);
-  }
 });
 
 // Option callback

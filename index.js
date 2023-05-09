@@ -71,10 +71,17 @@ bot.on("message", async (msg) => {
     //---------------------------------------- Date 📆⏳
     await subsLayer.getUser(chatId).then(async (user) => {
       if (user) {
-        let data = await subsLayer.getDateDRPCIV(user.judetId);
-        bot.sendMessage(chatId, "*" + data + "*", {
-          parse_mode: "Markdown",
-        });
+        if (!user.archived) {
+          let data = await subsLayer.getDateDRPCIV(user.judetId);
+          bot.sendMessage(chatId, "*" + data + "*", {
+            parse_mode: "Markdown",
+          });
+        } else {
+          bot.sendMessage(
+            chatId,
+            "Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul"
+          );
+        }
       } else {
         bot.sendMessage(
           chatId,
@@ -86,10 +93,13 @@ bot.on("message", async (msg) => {
     //---------------------------------------- Date 📆⏳
     await subsLayer.getUser(chatId).then(async (user) => {
       if (user) {
-        if(!user.archived){
+        if (!user.archived) {
           bot.sendMessage(chatId, "Schimbă judetul 🇷🇴", options1);
-        }else{
-          bot.sendMessage(chatId, "Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul");
+        } else {
+          bot.sendMessage(
+            chatId,
+            "Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul"
+          );
         }
       } else {
         bot.sendMessage(
@@ -149,7 +159,6 @@ bot.on("callback_query", async (callbackQuery) => {
 
     //optional
     current_date = await subsLayer.getDateDRPCIV(judet_id);
-    bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
     //-----
 
     if (message === "Alege judetul 🇷🇴") {
@@ -157,9 +166,10 @@ bot.on("callback_query", async (callbackQuery) => {
       subsLayer
         .addUser(callbackQuery.message.chat, current_date, judet_id)
         .then(async (user) => {
+          bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
           bot.sendMessage(
             chatId,
-            "Hey, o să te anunțăm despre programările disponibile la DRPCIV"
+            "O să te anunțăm despre programările disponibile la DRPCIV"
           );
           await subsLayer.sendMessage(
             process.env.ADMIN_CHAT_ID,

@@ -65,7 +65,7 @@ bot.on("message", async (msg) => {
     //---------------------------------------- Help ⁉
     bot.sendMessage(
       chatId,
-      "Comenzile disponibile sunt: /start, /stop, /help, /date\n Pentru mai multe întrebări, contactați @whos_gabi"
+      "Comenzile disponibile sunt: /start, /stop, /judet, /help, /date\n Pentru mai multe întrebări, contactați @whos_gabi"
     );
   } else if (message === "/date") {
     //---------------------------------------- Date 📆⏳
@@ -86,7 +86,11 @@ bot.on("message", async (msg) => {
     //---------------------------------------- Date 📆⏳
     await subsLayer.getUser(chatId).then(async (user) => {
       if (user) {
-        bot.sendMessage(chatId, "Schimbă judetul 🇷🇴", options1);
+        if(!user.archived){
+          bot.sendMessage(chatId, "Schimbă judetul 🇷🇴", options1);
+        }else{
+          bot.sendMessage(chatId, "Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul");
+        }
       } else {
         bot.sendMessage(
           chatId,

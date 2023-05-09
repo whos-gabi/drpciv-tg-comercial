@@ -106,16 +106,19 @@ bot.on("message", async (msg) => {
 
     //---------------------------------------- ADMIN COMMANDS
   } else if (message === "/users" && chatId == process.env.ADMIN_CHAT_ID) {
-    //---------------------------------------- Stop ⛔️
-    await subsLayer.getUsers().then(async (users) => {
+    //---------------------------------------- Users 🦀
+    await subsLayer.getAllUsers().then((users) => {
       users.forEach((user) => {
-        bot.sendMessage(chatId, JSON.stringify(user, null, 2));
+        bot.sendMessage(
+          chatId,
+          `User: ${JSON.stringify(user.data.chat, null, 2)}\nJudet: ${
+            judete[user.data.judetId - 1].nume
+          }\nArchived: ${user.data.archived}\nSubscribed: ${
+            user.data.subscribed
+          }\nFreeTrial:\n ${JSON.stringify(user.data.freetrial, null, 2)}\n`
+        );
       });
     });
-  } else if (message === "/user" && chatId == process.env.ADMIN_CHAT_ID) {
-    const idParam = ctx.message.text.match(/id=(\d+)/);
-    const id = idParam ? idParam[1] : null;
-    bot.sendMessage(chatId, id);
   } else {
     //---------------------------------------- Invalid command ♿️🚫
     bot.sendMessage(
@@ -131,14 +134,13 @@ bot.on("message", async (msg) => {
 
 // Option callback
 bot.on("callback_query", async (callbackQuery) => {
-  console.log("callback:\n", callbackQuery);
   const action = callbackQuery.data;
   const chatId = callbackQuery.message.chat.id;
   const messageId = callbackQuery.message.message_id;
   const message = callbackQuery.message.text;
   try {
     judet_id = action;
-    console.log(judet_id);
+    // console.log(judet_id);
     bot.sendMessage(chatId, `Ai ales judetul ${judete[judet_id - 1].nume}`);
 
     //optional
@@ -172,8 +174,7 @@ bot.on("callback_query", async (callbackQuery) => {
         );
         await subsLayer.sendMessage(
           process.env.ADMIN_CHAT_ID,
-          `User: ${chatId} changed to Judet: ${
-            judete[judet_id - 1].nume}`
+          `User: ${chatId} changed to Judet: ${judete[judet_id - 1].nume}`
         );
       });
     }

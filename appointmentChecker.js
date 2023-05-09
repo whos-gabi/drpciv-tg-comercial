@@ -23,6 +23,9 @@ function appointmentChecker() {
         //   "Judet: ",
         //   judete[user.data.judetId - 1].nume
         // );
+        if (user.data.archived) {
+          return;
+        }
         //validate user free trial
         if (validateUserTrial(user.data)) {
           await subsLayer
@@ -47,13 +50,18 @@ function appointmentChecker() {
           try {
             await subsLayer.sendMessage(
               process.env.ADMIN_CHAT_ID,
-              `User ${user.data.chat.id} expired trial\n\n${JSON.stringify(user.data, null, 2)}`
+              `User ${user.data.chat.id} expired trial\n\n${JSON.stringify(
+                user.data,
+                null,
+                2
+              )}`
             );
             await subsLayer.sendMessage(
-                user.data.chat.id,
-              `Abonamentul dvs. a expirat.\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul`
+              user.data.chat.id,
+              `Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul`
             );
-            await subsLayer.deleteUser(user.data.chat.id);
+            await subsLayer.archiveUser(user.data.chat.id, true);
+            await subsLayer.updateUserTrial(user.data.chat.id, false);
           } catch (err) {
             console.log(err);
           }

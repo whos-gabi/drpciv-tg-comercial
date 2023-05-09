@@ -1,0 +1,110 @@
+{
+    "commonServices":{
+        "countriesDataSVG":"assets/county-data.json",
+        "basePathRestService":"drpciv-booking-api",
+        "entireUrl": false,
+        "getCounties":"/counties",
+        "getCountyName": "/operations/getCountyName/",
+        "getOnlineApps":"/online-services"
+    },
+    "userProfileService":{
+      "basePathRestService":"drpciv-user-profile-api",
+      "entireUrl":false,
+      "checkSubscription":"/check-subscription",
+      "changeSubscription":"/save-subscription"
+  },
+    "publicPortalService":{
+        "basePathRestService":"drpciv-api",
+        "entireUrl": false,
+        "readCommons":"/readCommons",
+        "readManagement":"/readManagement",
+        "readDocumentsAndForms":"/readDocuments",
+        "readIndex":"/readIndex",
+        "readContactDetails":"/readContactDetails",
+        "readNewsAndMedia":"/readNewsMedia",
+        "readFAQ":"/readFAQ",
+        "readDoc":"/readDoc",
+        "readNews":"/readNews",
+        "readCareerList":"/readCareerList",
+        "readCareerDetails":"readCareerDetails",
+        "readCareerOpeningsPerCounty":"/readCareerOpeningsPerCounty",
+        "readCountyById":"/readCountyById",
+        "readPublicAcquisitions":"/readPublicAcquisitions",
+        "readPublicAcquisitionsYears":"/readPublicAcquisitionsYears",
+        "readLaw544":"/readLaw544",
+        "readReviews":"/readReviews",
+        "readPrograms":"/readPrograms",
+        "readReports":"/readReports",
+        "readActiveLaws":"/readActiveLaws",
+        "readAskInfos":"/readAskInfos",
+        "readBudgets":"/readBudgets",
+        "readAllManagement":"/readAllManagement",
+        "readAllManagementYears":"/readAllManagementYears",
+        "readAccreditationDetails":"/readAccreditationDetails",
+        "readAllCounties":"/readAllCounties"
+    },
+    "publicPortal":{
+        "cookieTimeValabilitySeconds":2592000000,
+        "keyLocalStorageAlert":"alertBox",
+        "dirSliderFies":"../assets/uploads/banners/",
+        "dirSliderFilesHorizontalSimple": "assets/images/services-carousel/",
+        "defaultImageProfile":"assets/images/member-default-image.jpg",
+        "delayHorizontalSlider": 2000,
+        "delayVerticalSlider": 5000,
+        "delayHorizontalSimpleSlider":10000,
+        "unavailableRoutes":[
+            "test"
+        ],
+        "documentsAndFormsPaginationLimit": 5,
+        "newsAndMediaPaginationLimit": 5,
+        "careerListPaginationLimit": 5,
+        "wealthDeclarationPaginationLimit": 5,
+        "newsAndMediaAllowSortByYear": false,
+        "googleMapsLink": "https://maps.googleapis.com/maps/api/js?key=AIzaSyCEcwWVT5D1PuL3HEn4R34TqWYv86H5CLs&callback",
+        "imageLocationLoader":"assets/images/loading_icon_transparent.gif",
+        "isBooking":true
+    },
+    "booking":{
+      "activityTypes":[
+        { "key":"theoryExamination",
+          "code":1 },
+        { "key":"exchangingDriverLicence",
+          "code":2 },
+        { "key":"vehicleTranscription",
+          "code":4 },
+        { "key":"vehicleFirstRegistration",
+          "code":8 },
+        { "key":"temporaryPermit",
+          "code":16 },
+        { "key":"vehicleDeactivation",
+          "code":32 },
+        { "key":"driverLicenceDuplicate",
+          "code":64 },
+        { "key":"vehicleRegistrationDuplicate",
+          "code":128 },
+        { "key":"exchangingForeignDriverLicence",
+          "code":256 }
+      ],
+        "dateFormatAvailableDays":"YYYY-MM-DD HH:mm:ss",
+        "siteKeyCaptchaTest":"6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+        "pathLoadingImage":"assets/images/service_loading.gif"
+    },
+    "bookingService":{
+        "basePathRestService":"drpciv-booking-api",
+        "entireUrl": false,
+        "getOperations":"/operations/",
+        "getCounties":"/counties",
+        "getAllAvailableDays":"/getAvailableDaysForSpecificService/",
+        "getAvailableHours":"/getCalendar",
+        "calendarCode": "/calendar",
+        "saveReservation":"/reservation/save",
+        "resendInitialNotification": "/resendInitialNotification",
+        "getReservationDetails": "/reservation/info/",
+        "getCountyName": "/operations/getCountyName/",
+        "cancelReservation":"reservation/cancel"
+    },
+    "externalConfig":{
+        "externFile":"external-assets/config.json",
+        "externalContent": null
+    }
+}

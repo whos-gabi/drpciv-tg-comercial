@@ -17,6 +17,7 @@ let current_date = "";
 bot.setMyCommands([
   { command: "/start", description: "Start 🚀" },
   { command: "/stop", description: "Stop ⛔️" },
+  { command: "/judet", description: "Schimbă Județul ⚙️" },
   { command: "/help", description: "Ajutor ⁉" },
   { command: "/date", description: "Urmatoarea data disponibila 📆⏳" },
 ]);
@@ -40,13 +41,21 @@ bot.on("message", async (msg) => {
 
     await subsLayer.getUser(msg.chat.id).then(async (user) => {
       if (user) {
-        console.log(`User ${msg.chat.id} already exists in db`);
-        current_date = await subsLayer.getDateDRPCIV(user.judetId);
-        bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
-        bot.sendMessage(
-          chatId,
-          "Botul deja ruleaza! (" + judete[user.judetId - 1].nume + ")"
-        );
+        // await subsLayer.stopUser(msg.chat.id, false);
+        if (user.archived) {
+          bot.sendMessage(
+            chatId,
+            "Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul"
+          );
+        } else {
+          console.log(`User ${msg.chat.id} already exists in db`);
+          current_date = await subsLayer.getDateDRPCIV(user.judetId);
+          bot.sendMessage(
+            chatId,
+            "Botul deja ruleaza! (" + judete[user.judetId - 1].nume + ")"
+          );
+          bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
+        }
       } else {
         bot.sendMessage(chatId, "Salut! 👋");
         bot.sendMessage(chatId, "Alege judetul 🇷🇴", options1);
@@ -73,15 +82,40 @@ bot.on("message", async (msg) => {
         );
       }
     });
+  } else if (message === "/judet") {
+    //---------------------------------------- Date 📆⏳
+    await subsLayer.getUser(chatId).then(async (user) => {
+      if (user) {
+        bot.sendMessage(chatId, "Schimbă judetul 🇷🇴", options1);
+      } else {
+        bot.sendMessage(
+          chatId,
+          "Nu sunteți abonat la notificări! \nFolosiți /start pentru a vă abona."
+        );
+      }
+    });
   } else if (message === "/stop") {
     //---------------------------------------- Stop ⛔️
-    await subsLayer.deleteUser(msg.chat.id).then(async () => {
+    await subsLayer.archiveUser(msg.chat.id, true).then(async () => {
       bot.sendMessage(chatId, "Botul a fost oprit");
       await subsLayer.sendMessage(
         process.env.ADMIN_CHAT_ID,
-        `User deleted:\n\n${JSON.stringify(msg, null, 2)}`
+        `User archived:\n\n${JSON.stringify(msg, null, 2)}`
       );
     });
+
+    //---------------------------------------- ADMIN COMMANDS
+  } else if (message === "/users" && chatId == process.env.ADMIN_CHAT_ID) {
+    //---------------------------------------- Stop ⛔️
+    await subsLayer.getUsers().then(async (users) => {
+      users.forEach((user) => {
+        bot.sendMessage(chatId, JSON.stringify(user, null, 2));
+      });
+    });
+  } else if (message === "/user" && chatId == process.env.ADMIN_CHAT_ID) {
+    const idParam = ctx.message.text.match(/id=(\d+)/);
+    const id = idParam ? idParam[1] : null;
+    bot.sendMessage(chatId, id);
   } else {
     //---------------------------------------- Invalid command ♿️🚫
     bot.sendMessage(
@@ -97,9 +131,11 @@ bot.on("message", async (msg) => {
 
 // Option callback
 bot.on("callback_query", async (callbackQuery) => {
+  console.log("callback:\n", callbackQuery);
   const action = callbackQuery.data;
   const chatId = callbackQuery.message.chat.id;
   const messageId = callbackQuery.message.message_id;
+  const message = callbackQuery.message.text;
   try {
     judet_id = action;
     console.log(judet_id);
@@ -109,21 +145,38 @@ bot.on("callback_query", async (callbackQuery) => {
     current_date = await subsLayer.getDateDRPCIV(judet_id);
     bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
     //-----
-    bot.deleteMessage(chatId, messageId);
-    subsLayer
-      .addUser(callbackQuery.message.chat, current_date, judet_id)
-      .then(async (user) => {
+
+    if (message === "Alege judetul 🇷🇴") {
+      bot.deleteMessage(chatId, messageId);
+      subsLayer
+        .addUser(callbackQuery.message.chat, current_date, judet_id)
+        .then(async (user) => {
+          bot.sendMessage(
+            chatId,
+            "Hey, o să te anunțăm despre programările disponibile la DRPCIV"
+          );
+          await subsLayer.sendMessage(
+            process.env.ADMIN_CHAT_ID,
+            `New user subscribed: ${chatId} Judet: ${
+              judete[judet_id - 1].nume
+            }\n\n${JSON.stringify(user, null, 2)}`
+          );
+        });
+    } else if (message === "Schimbă judetul 🇷🇴") {
+      bot.deleteMessage(chatId, messageId);
+      await subsLayer.updateUserLastDate(chatId, current_date);
+      subsLayer.updateUserJudetID(chatId, judet_id).then(async (user) => {
         bot.sendMessage(
           chatId,
-          "Hey, o sa va anuntam despre programarile disponibile la DRPCIV"
+          "Te țin la curent cu programările disponibile la DRPCIV"
         );
         await subsLayer.sendMessage(
           process.env.ADMIN_CHAT_ID,
-          `New user subscribed: ${chatId} Judet: ${
-            judete[judet_id - 1].nume
-          }\n\n${JSON.stringify(user, null, 2)}`
+          `User: ${chatId} changed to Judet: ${
+            judete[judet_id - 1].nume}`
         );
       });
+    }
   } catch (err) {
     console.log(err);
     bot.sendMessage(chatId, `Eroare: ${err}`);

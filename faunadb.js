@@ -57,6 +57,7 @@ export class SubscriptionLayer {
         chat: chat,
         lastDate: lastDate,
         judetId: judetId,
+        archived: false,
         subscribed: false,
         freetrial: {
           status: true,
@@ -93,6 +94,82 @@ export class SubscriptionLayer {
           this.q.Update(user.ref, { data: { lastDate: lastDate } })
         );
         console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+  async updateUserJudetID(chatId, judetId) {
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { judetId: judetId } })
+        );
+        console.log(`User with chatId ${chatId} updated successfully`);
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+
+  async updateUserSubscription(chatId, status) {
+    //use this for admin use only
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { subscribed: status } })
+        );
+        console.log(
+          `User with chatId ${chatId} updated successfully (SUBSCRIPTION)`
+        );
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+
+  async updateUserTrial(chatId, status) {
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { freetrial: { status: status } } })
+        );
+        console.log(
+          `User with chatId ${chatId} updated successfully (FreeTrial)`
+        );
+      } else {
+        console.log(`User with chatId ${chatId} not found`);
+      }
+    } catch (error) {
+      console.error(`Error updating user document: ${error}`);
+    }
+  }
+
+  async archiveUser(chatId, status) {
+    try {
+      const user = await this.client.query(
+        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+      );
+      if (user) {
+        await this.client.query(
+          this.q.Update(user.ref, { data: { archived: status } })
+        );
+        console.log(`User with chatId ${chatId} stopped successfully`);
       } else {
         console.log(`User with chatId ${chatId} not found`);
       }
@@ -156,7 +233,7 @@ export class SubscriptionLayer {
         });
     });
   }
-  
+
   async sendMessage(chatId, msg) {
     msg = encodeURI(msg);
     const url = `https://api.telegram.org/bot${process.env.TOKEN}/sendMessage?chat_id=${chatId}&text=${msg}`;

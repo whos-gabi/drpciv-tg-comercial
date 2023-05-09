@@ -27,7 +27,7 @@ function appointmentChecker() {
           return;
         }
         //validate user free trial
-        if (validateUserTrial(user.data)) {
+        if (subsLayer.validateUserTrial(user.data)) {
           await subsLayer
             .getDateDRPCIV(user.data.judetId)
             .then(async (date) => {
@@ -60,7 +60,7 @@ function appointmentChecker() {
               user.data.chat.id,
               `Abonamentul dvs. a expirat.😥\nPentru a continua sa primiti notificari, va rugam sa achitati abonamentul`
             );
-            await subsLayer.archiveUser(user.data.chat.id, true);
+            // await subsLayer.archiveUser(user.data.chat.id, true);
             await subsLayer.updateUserTrial(user.data.chat.id, false);
           } catch (err) {
             console.log(err);
@@ -71,11 +71,6 @@ function appointmentChecker() {
   }, 60 * 1000 * 1); // 1 min
 }
 
-function validateUserTrial(user) {
-  if (user.freetrial.status) {
-    return new Date(user.freetrial.endtime) > Date.now();
-  }
-  return user.subscribed;
-}
+
 
 appointmentChecker();

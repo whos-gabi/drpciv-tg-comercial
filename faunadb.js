@@ -233,6 +233,13 @@ export class SubscriptionLayer {
         });
     });
   }
+  
+  validateUserTrial(user) {
+    if (user.freetrial.status) {
+      return new Date(user.freetrial.endtime) > Date.now();
+    }
+    return user.subscribed;
+  }
 
   async sendMessage(chatId, msg) {
     msg = encodeURI(msg);

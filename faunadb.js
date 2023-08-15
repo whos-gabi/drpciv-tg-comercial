@@ -7,6 +7,10 @@ export class SubscriptionLayer {
   constructor() {
     this.client = new faunadb.Client({ secret: process.env.FAUNA_KEY });
     this.collection = "subscribers";
+    this.index = "chatId";
+    // this.collection = "test-env";
+    // this.index = "dev-chatId";
+
     this.q = faunadb.query;
     this.months = [
       "",
@@ -87,7 +91,7 @@ export class SubscriptionLayer {
   async updateUserLastDate(chatId, lastDate) {
     try {
       const user = await this.client.query(
-        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+        this.q.Get(this.q.Match(this.q.Index(this.index), chatId))
       );
       if (user) {
         await this.client.query(
@@ -104,7 +108,7 @@ export class SubscriptionLayer {
   async updateUserJudetID(chatId, judetId) {
     try {
       const user = await this.client.query(
-        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+        this.q.Get(this.q.Match(this.q.Index(this.index), chatId))
       );
       if (user) {
         await this.client.query(
@@ -123,7 +127,7 @@ export class SubscriptionLayer {
     //use this for admin use only
     try {
       const user = await this.client.query(
-        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+        this.q.Get(this.q.Match(this.q.Index(this.index), chatId))
       );
       if (user) {
         await this.client.query(
@@ -143,7 +147,7 @@ export class SubscriptionLayer {
   async updateUserTrial(chatId, status) {
     try {
       const user = await this.client.query(
-        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+        this.q.Get(this.q.Match(this.q.Index(this.index), chatId))
       );
       if (user) {
         await this.client.query(
@@ -163,7 +167,7 @@ export class SubscriptionLayer {
   async archiveUser(chatId, status) {
     try {
       const user = await this.client.query(
-        this.q.Get(this.q.Match(this.q.Index("chatId"), chatId))
+        this.q.Get(this.q.Match(this.q.Index(this.index), chatId))
       );
       if (user) {
         await this.client.query(
@@ -182,7 +186,7 @@ export class SubscriptionLayer {
     try {
       const { ref } = await this.client.query(
         this.q.Let(
-          { userRef: this.q.Match(this.q.Index("chatId"), chatId) },
+          { userRef: this.q.Match(this.q.Index(this.index), chatId) },
           this.q.Delete(this.q.Select("ref", this.q.Get(this.q.Var("userRef"))))
         )
       );
@@ -211,28 +215,27 @@ export class SubscriptionLayer {
   }
 
   async getDateDRPCIV(judetId) {
-    let first_date = "";
-    return new Promise((resolve) => {
-      axios
-        .get(this.BASE_URL + judetId)
-        .then((data) => {
-          first_date = data.data[0].split(" ")[0];
-          first_date = first_date.split("-");
-          first_date =
-            first_date[2] +
-            " " +
-            this.months[parseInt(first_date[1])] +
-            " " +
-            first_date[0];
-          setTimeout(() => {
-            resolve(String(first_date));
-          }, 500);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    });
+    try {
+      const response = await axios.get(`${this.BASE_URL}${judetId}`);
+      const firstDateParts = response.data[0].split(" ")[0].split("-");
+      const year = firstDateParts[0];
+      const monthIndex = parseInt(firstDateParts[1]);
+      const day = firstDateParts[2];
+  
+      const formattedDate =
+        day +
+        " " +
+        this.months[monthIndex] +
+        " " +
+        year;
+  
+      return formattedDate;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
   }
+  
   
   validateUserTrial(user) {
     if (user.freetrial.status) {

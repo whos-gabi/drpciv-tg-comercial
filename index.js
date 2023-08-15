@@ -56,10 +56,12 @@ bot.on("message", async (msg) => {
             );
             bot.sendMessage(chatId, `Data curenta este: ${current_date}`);
           }
-        }else{
-          bot.sendMessage(chatId, "Abonamentul dvs. a expirat.😥\nPentru a continua să primiți notificări, va rugăm sa achitați abonamentul");
+        } else {
+          bot.sendMessage(
+            chatId,
+            "Abonamentul dvs. a expirat.😥\nPentru a continua să primiți notificări, va rugăm sa achitați abonamentul"
+          );
         }
-
       } else {
         bot.sendMessage(chatId, "Salut! 👋");
         bot.sendMessage(chatId, "Alegeți județul 🇷🇴", options1);
@@ -180,17 +182,18 @@ bot.on("callback_query", async (callbackQuery) => {
         });
     } else if (message === "Schimbați județul 🇷🇴") {
       bot.deleteMessage(chatId, messageId);
-      await subsLayer.updateUserLastDate(chatId, current_date);
-      subsLayer.updateUserJudetID(chatId, judet_id).then(async () => {
-        bot.sendMessage(chatId, `Data curentă este: ${current_date}`);
-        bot.sendMessage(
-          chatId,
-          "Vă ținem la curent cu programările disponibile la DRPCIV"
-        );
-        await subsLayer.sendMessage(
-          process.env.ADMIN_CHAT_ID,
-          `User: ${chatId} changed to Judet: ${judete[judet_id - 1].nume}`
-        );
+      await subsLayer.updateUserJudetID(chatId, judet_id).then(async () => {
+        await  subsLayer.updateUserLastDate(chatId, current_date).then(async () => {
+          bot.sendMessage(chatId, `Data curentă este: ${current_date}`);
+          bot.sendMessage(
+            chatId,
+            "Vă ținem la curent cu programările disponibile la DRPCIV"
+          );
+          await subsLayer.sendMessage(
+            process.env.ADMIN_CHAT_ID,
+            `User: ${chatId} changed to Judet: ${judete[judet_id - 1].nume}`
+          );
+        });
       });
     }
   } catch (err) {

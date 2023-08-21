@@ -51,9 +51,9 @@ export class SubscriptionLayer {
 
   async addUser(chat, lastDate, judetId) {
     try {
-      //create a date instance 2 days from now
+      //create a date instance 3 days from now
       let date = new Date();
-      date.setDate(date.getDate() + 2);
+      date.setDate(date.getDate() + 3);
       //strinfify date
       date = date.toISOString();
 
@@ -68,7 +68,7 @@ export class SubscriptionLayer {
           endtime: date,
         },
       };
-      const result = await this.client.query(
+      await this.client.query(
         faunadb.query.Create(faunadb.query.Collection(this.collection), {
           data: user,
         })

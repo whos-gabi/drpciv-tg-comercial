@@ -68,7 +68,7 @@ function appointmentChecker() {
 
       });
     });
-  }, 60 * 1000 * 1.5); // 1,5 min
+  }, 60 * 1000 * 1.65); // 1,5 min
 }
 
 appointmentChecker();
